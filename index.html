@@ -12,7 +12,7 @@
     }
     canvas {
       border: 1px solid #ccc;
-      margin-top: 20px;
+      margin-top: 10px;
     }
     #downloadBtn {
       margin-top: 20px;
@@ -35,7 +35,7 @@
       margin: 5% auto;
       padding: 20px;
       border: 1px solid #888;
-      width: 550px;
+      width: 600px;
       text-align: center;
       position: relative;
     }
@@ -48,6 +48,11 @@
     }
     #previewCanvas {
       cursor: grab;
+      display: block;
+      margin: auto;
+    }
+    #livePreview {
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -67,16 +72,17 @@
       <canvas id="previewCanvas" width="500" height="500"></canvas>
       <div>
         <label for="zoomRange">Zoom:</label>
-        <input type="range" id="zoomRange" min="0.5" max="3" step="0.01" value="1" />
+        <input type="range" id="zoomRange" min="0.1" max="3" step="0.01" value="1" />
       </div>
       <div class="modal-buttons">
         <button id="confirmCrop">Confirm</button>
         <button id="cancelCrop">Cancel</button>
       </div>
+      <h4>Live Preview</h4>
+      <canvas id="livePreview" width="100" height="100"></canvas>
     </div>
   </div>
 
-  <!-- Hidden frame image -->
   <img id="frameImage" src="frame1.png" style="display:none;" />
 
   <script>
@@ -89,6 +95,8 @@
     const confirmCrop = document.getElementById('confirmCrop');
     const cancelCrop = document.getElementById('cancelCrop');
     const zoomSlider = document.getElementById('zoomRange');
+    const livePreview = document.getElementById('livePreview');
+    const liveCtx = livePreview.getContext('2d');
 
     let uploadedImage = new Image();
     let userImage;
@@ -180,6 +188,23 @@
 
       previewCtx.fillStyle = 'red';
       previewCtx.fillRect(cropStartX + cropSize - 6, cropStartY + cropSize - 6, 12, 12);
+
+      // Live preview crop
+      const imageData = previewCtx.getImageData(cropStartX, cropStartY, cropSize, cropSize);
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = cropSize;
+      tempCanvas.height = cropSize;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.putImageData(imageData, 0, 0);
+
+      liveCtx.clearRect(0, 0, 100, 100);
+      liveCtx.drawImage(tempCanvas, 0, 0, 100, 100);
+
+      // Add frame to live preview
+      const frame = document.getElementById('frameImage');
+      if (frame.complete) {
+        liveCtx.drawImage(frame, 0, 0, 100, 100);
+      }
     }
 
     confirmCrop.addEventListener('click', () => {
